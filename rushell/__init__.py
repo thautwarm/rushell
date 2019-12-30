@@ -1,1 +1,1 @@
-print ("hello community, I'm thautawarm!")
+__version__ = '0.1.0'

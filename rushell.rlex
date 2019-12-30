@@ -1,0 +1,2 @@
+space \s+
+any [\w\W]

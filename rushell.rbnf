@@ -1,0 +1,20 @@
+arg : doubleQuotedStr;
+arg : pattern;
+arg : quote;
+
+quote : '`' args '`';
+doubleQuotedStr : '"' [args] '"';
+
+strPattern: doubleQuotedStr;
+strPattern: pattern;
+strPattern: quote;
+strPattern : <space>;
+args: [args] strPattern;
+
+ch : '\\' '"';
+ch : '\\' '\\';
+ch :  <any>;
+
+pattern : [pattern] ch;
+
+START: <BOF> args <EOF>;
