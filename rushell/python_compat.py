@@ -130,7 +130,7 @@ def from_python_fn(f: types.FunctionType, alias: str = None):
 
     def logic(args, kwargs):
         args, kwargs = get_actual_arguments(args, kwargs, pos, var, kws, var_kw)
-        f(args, kwargs)
+        return f(*args, **kwargs)
 
     cco = ClassicCommandObject()
     cco.vararg_names = ()

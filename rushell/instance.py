@@ -5,6 +5,7 @@ from rushell.commands import CommandCtx
 from rushell.exceptions import RushException, ParseError
 from rushell.parser_wrap import parse
 from rushell.structured import structure_top, Cmd
+from rushell.toolz import eval_cmd_with_world, split_cmd_with_world
 import os.path as path
 import sys
 
@@ -22,15 +23,16 @@ def run_instance(cmd_world: CommandCtx, completer=None):
     cmd_world.scope = glob
     exec(rc_code, glob)
 
-    history = glob['HISTORY_FILE']
+    history = path.expanduser(glob['HISTORY_FILE'])
     session = PromptSession(history=FileHistory(history))
 
     autocomp_adaptor = RushAdaptorForPromptToolkit(glob['COMPLETER'])
     while True:
         text = session.prompt(glob['PROMPT_PREFIX'], completer=autocomp_adaptor)
         try:
-            structure_top(parse(text))
+            cmd_name, args = split_cmd_with_world(cmd_world.cmds, Cmd(structure_top(parse(text))))
+            print(eval_cmd_with_world(cmd_world.cmds, cmd_name, args))
         except RushException as e:
-            e.print()
+            print(e.show())
         except ParseError as e:
-            e.print()
+            print(e.show())

@@ -9,9 +9,12 @@ class CommandCtx:
     cmds: Dict[str, 'CommandObject']
     scope: dict
 
-    def add(self, command_name: str, cmd_obj: 'CommandObject'):
+    def __init__(self):
+        self.cmds = {}
+
+    def add(self, cmd_obj: 'CommandObject'):
         cmd_obj._cmd_ctx = self
-        self.cmds[command_name] = cmd_obj
+        self.cmds[cmd_obj.name] = cmd_obj
 
 
 class CommandObject:

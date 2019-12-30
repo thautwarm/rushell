@@ -1,4 +1,5 @@
 from prompt_toolkit.completion import Completer, Completion, CompleteEvent
+from prompt_toolkit.document import Document
 from rushell.parser_wrap import parse, ParseError
 from rushell.structured import get_current, structure_top, Cmd, Str, Concat
 from abc import ABC
@@ -48,15 +49,18 @@ class RushFastCompleter(ABC):
         else:
             # CommandNameCannotDecide
             return
-        return self.registers.get(cmd_name)(last_cmd, current_pattern, complete_event)
+        f = self.registers.get(cmd_name)
+        if f is None:
+            return
+        return f(last_cmd, current_pattern, complete_event)
 
 
 class RushAdaptorForPromptToolkit(Completer):
     def __init__(self, comp: RushFastCompleter):
         self.comp_func = comp.complete
 
-    def get_completions(self, document: str, complete_event: CompleteEvent):
-        cur_doc = document
+    def get_completions(self, document: Document, complete_event: CompleteEvent):
+        cur_doc = document.text
         while True:
             try:
                 ast = parse(cur_doc)
