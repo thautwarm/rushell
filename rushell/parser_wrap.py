@@ -1,25 +1,31 @@
 from rushell.parser_generated import *
 from rbnf_rts.rts import Tokens, State, AST
-from typing import Union, Tuple, List
-from typing_extensions import Literal
 
-__all__ = ['parse']
+__all__ = ['parse', 'ParseError']
 _parse = mk_parser()
 
-Errors = Tuple[Literal[False], List[Tuple[int, str]]]
-Parsed = Tuple[Literal[True], AST]
+
+class ParseError(Exception):
+    __slots__ = ['msg', 'offset']
+    msg: str
+    offset: int
 
 
-def parse(text: str, filename: str = "unknown") -> Union[Parsed, Errors]:
+def parse(text: str, filename: str = "unknown") -> AST:
     tokens = list(run_lexer(filename, text))
     res = _parse(State(), Tokens(tokens))
     if res[0]:
         return res[1]
+
     msgs = []
+    token = None
     for each in res[1]:
         i, msg = each
         token = tokens[i]
         lineno = token.lineno
         colno = token.colno
         msgs.append(f"Line {lineno}, column {colno}, {msg}")
-    raise SyntaxError(f"Filename {filename}:\n" + "\n".join(msgs))
+    err = ParseError()
+    err.msg = f"Filename {filename}:\n" + "\n".join(msgs)
+    err.offset = 0 if token is None else token.offset
+    raise err

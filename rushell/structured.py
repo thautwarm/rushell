@@ -6,12 +6,6 @@ from typing import List, Union
 
 @dataclass(unsafe_hash=True, order=True, eq=True)
 class Cmd:
-    # args can be empty
-    args: List['Arg']
-
-
-@dataclass(unsafe_hash=True, order=True, eq=True)
-class Quote:
     # args cannot be empty!
     args: List['Arg']
 
@@ -26,7 +20,7 @@ class Pat:
     value: str
 
 
-Arg = Union[Cmd, Str, Quote, Pat]
+Arg = Union[Cmd, Str, Cmd, Pat]
 
 
 class MK:
@@ -42,9 +36,9 @@ class MK:
             # doubleQuotedStr : '"' args '"';
             return Str(self.args_with_space(cs[1]))
 
-    def quote(self, node: AST) -> Quote:
+    def quote(self, node: AST) -> Cmd:
         """quote : '`' args '`';"""
-        return Quote(self.args_without_space(node.contents[1]))
+        return Cmd(self.args_without_space(node.contents[1]))
 
     def pattern(self, node: AST) -> Pat:
         """pattern : [pattern] ch;"""
@@ -141,3 +135,19 @@ def structure_top(ast: AST):
     if len(ast.contents) is 2:
         return []
     return MK().args_without_space(ast.contents[1])
+
+
+def get_current(cmd: Cmd):
+    last_cmd = cmd
+    cur = cmd
+    _cmd = Cmd
+    _pat = Pat
+    _type = type
+    _type_of_cur = _type(cur)
+    while _type_of_cur is not Pat:
+        cur = cur.args[-1]
+        _type_of_cur = _type(cur)
+        if _type_of_cur is _cmd:
+            last_cmd = cur
+
+    return last_cmd, cur
