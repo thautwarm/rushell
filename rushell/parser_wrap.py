@@ -1,14 +1,9 @@
 from rushell.parser_generated import *
 from rbnf_rts.rts import Tokens, State, AST
+from rushell.exceptions import ParseError
 
-__all__ = ['parse', 'ParseError']
+__all__ = ['parse']
 _parse = mk_parser()
-
-
-class ParseError(Exception):
-    __slots__ = ['msg', 'offset']
-    msg: str
-    offset: int
 
 
 def parse(text: str, filename: str = "unknown") -> AST:

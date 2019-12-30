@@ -1,6 +1,6 @@
 from prompt_toolkit.completion import Completer, Completion, CompleteEvent
 from rushell.parser_wrap import parse, ParseError
-from rushell.structured import get_current, structure_top, Cmd, Pat, Str
+from rushell.structured import get_current, structure_top, Cmd, Str, Concat
 from abc import ABC
 from typing import List, Callable, Dict
 
@@ -9,10 +9,10 @@ class CommandNameCannotDecide(Exception):
     pass
 
 
-def collect_raw(xs: List[str], s: Str):
+def collect_raw(xs: List[str], s: Concat):
     """Deciding the command name from a `Str`"""
-    _pat = Pat
-    _str = Str
+    _pat = Str
+    _str = Concat
     _cmd = Cmd
     _type = type
     for each in s.args:
@@ -25,11 +25,17 @@ def collect_raw(xs: List[str], s: Str):
 
 
 class RushFastCompleter(ABC):
-    registers: Dict[str, Callable[[Cmd, Pat, CompleteEvent], Completion]]
+    registers: Dict[str, Callable[[Cmd, Str, CompleteEvent], Completion]]
 
-    def complete(self, last_cmd: Cmd, current_pattern: Pat, complete_event: CompleteEvent):
+    def __init__(self):
+        self.registers = {}
+
+    def add(self, command_name: str, completer: Callable[[Cmd, Str, CompleteEvent], Completion]):
+        self.registers[command_name] = completer
+
+    def complete(self, last_cmd: Cmd, current_pattern: Str, complete_event: CompleteEvent):
         fst = last_cmd.args[0]
-        if isinstance(fst, Str):
+        if isinstance(fst, Concat):
             xs = []
             try:
                 collect_raw(xs, fst)
@@ -37,7 +43,7 @@ class RushFastCompleter(ABC):
             except CommandNameCannotDecide:
                 return
 
-        elif isinstance(fst, Pat):
+        elif isinstance(fst, Str):
             cmd_name = fst.value
         else:
             # CommandNameCannotDecide
